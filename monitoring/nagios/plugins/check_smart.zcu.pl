@@ -35,7 +35,7 @@ use Getopt::Long;
 use File::Basename qw(basename);
 my $basename = basename($0);
 
-my $revision = '1.0.4';
+my $revision = '1.0.6';
 
 use lib '/usr/lib/nagios/plugins/';
 use utils qw(%ERRORS &print_revision &support &usage);
