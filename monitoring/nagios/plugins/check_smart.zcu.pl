@@ -373,17 +373,20 @@ exit $ERRORS{$exit_status};
 
 sub print_help {
 	print_revision($basename,$revision);
-	print "Usage: $basename --device=<device> --interface=(ata|sat|scsi|[sat+]megaraid,N) [--realloc=<min>] [--checksum] [--log] [--debug] [--version] [--help]\n";
-	print "  --debug: show debugging information\n";
-	print "  -d/--device: a device to be SMART monitored, eg. /dev/sda\n";
-	print "  -i/--interface: ata, sat, scsi, megaraid, depending upon the device's interface type\n";
-#        print "  -n/--number: where in the argument megaraid, it is the physical disk number within the MegaRAID controller\n";
-        print "  -r/--realloc: minimum of accepted reallocated sectors (actual value: $opt_realloc)\n";
-        print "  -p/--pending: minimum of accepted pending sectors (actual value: $opt_pending)\n";
-	print "  -c/--checksum: disable checksum log structure (default: enable)\n";
-	print "  -l/--log: disable check of SMART logs (default: enable)\n";
-	print "  -h/--help: this help\n";
-	print "  -v/--version: Version number\n";
+	print "Usage: $basename --device=<device> --interface=(ata|sat|scsi|[sat+]megaraid,N) [--realloc=<num>] [--pending=<num>] [--checksum] [--log] [--debug] [--version] [--help]\n";
+	print "  -d/--device     a device to be SMART monitored, eg. /dev/sda\n";
+	print "  -i/--interface  ata, sat, scsi, megaraid, depending upon the device's interface type\n";
+#        print "  -n/--number     where in the argument megaraid, it is the physical disk number within the MegaRAID controller\n";
+        print "  -r/--realloc    minimum of accepted reallocated sectors (actual value: $opt_realloc)\n";
+        print "  -p/--pending    minimum of accepted pending sectors (actual value: $opt_pending)\n";
+	print "  -c/--checksum   disable checksum log structure (default: enable)\n";
+	print "  -l/--log        disable check of SMART logs (default: enable)\n";
+	print "     --debug      show debugging information\n";
+	print "  -h/--help       this help\n";
+	print "  -v/--version    show version of this plugin\n";
+	print "Examples:\n";
+	print "  $basename --device=/dev/sda --interface=sat --realloc=10\n";
+	print "  $basename -d /dev/sdb -i megaraid,2 -p 1 -l\n";
 	support();
 }
 
