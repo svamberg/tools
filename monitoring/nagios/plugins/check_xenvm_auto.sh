@@ -12,7 +12,7 @@ if [ "x$TOOLSTACK_BASENAME" != 'xxl' -a "$TOOLSTACK_BASENAME" != 'xxm' ]; then
 	exit 3
 fi
 
-VMS=`$TOOLSTACK list | grep -v '^Name ' | grep -v '^Domain-0 ' | awk '{print $1}' | sort`
+VMS=`sudo $TOOLSTACK list | grep -v '^Name ' | grep -v '^Domain-0 ' | awk '{print $1}' | sort`
 # VMS=`echo -e "$VMS\nzz_vms"` # use only for development or debug
 
 AUTO=`ls /etc/xen/auto | sort` 
