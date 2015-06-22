@@ -7,7 +7,7 @@ TOOLSTACK=`/usr/lib/xen-common/bin/xen-toolstack`
 TOOLSTACK_BASENAME=`basename $TOOLSTACK`
 
 # test of supported toolstack
-if [ "x$TOOLSTACK_BASENAME" != 'xxl' -a "$TOOLSTACK_BASENAME" != 'xxm' ]; then
+if [ "x$TOOLSTACK_BASENAME" != 'xxl' -a "x$TOOLSTACK_BASENAME" != 'xxm' ]; then
 	echo "This is unsupported Xen toolstack."
 	exit 3
 fi
