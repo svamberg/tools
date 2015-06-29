@@ -28,6 +28,9 @@
 #       - append inform messages if used -l, -r or -c option
 # 1.0.6 Jun 7, 2015: Michal Svamberg
 #       - add -p option as minimum of pending sectors 
+# 1.0.7 Jun 29, 2015: Michal Svamberg
+#       - add -f option to disable 'Disk may be close to failure' 
+
 
 use strict;
 use Getopt::Long;
@@ -35,7 +38,7 @@ use Getopt::Long;
 use File::Basename qw(basename);
 my $basename = basename($0);
 
-my $revision = '1.0.6';
+my $revision = '1.0.7';
 
 use lib '/usr/lib/nagios/plugins/';
 use utils qw(%ERRORS &print_revision &support &usage);
@@ -45,7 +48,7 @@ $ENV{'BASH_ENV'}='';
 $ENV{'ENV'}='';
 
 # global variables
-use vars qw($opt_d $opt_debug $opt_h $opt_i $opt_n $opt_v $opt_realloc $opt_pending $opt_checksum $opt_log);
+use vars qw($opt_d $opt_debug $opt_h $opt_i $opt_n $opt_v $opt_realloc $opt_pending $opt_checksum $opt_log $opt_failure);
 my $smart_command = '/usr/bin/sudo /usr/sbin/smartctl';
 my @error_messages = qw//;
 my $exit_status = 'OK';
@@ -64,6 +67,7 @@ GetOptions(
 	"r=i" => \$opt_realloc, "realloc=i" => \$opt_realloc,
 	"p=i" => \$opt_pending, "pending=i" => \$opt_pending,
 	"c"   => \$opt_checksum, "checksum" => \$opt_checksum,
+	"f"   => \$opt_failure,  "failure" => \$opt_failure,
 	"l"   => \$opt_log, "log" => \$opt_log,
 	"v"   => \$opt_v, "version"     => \$opt_v,
 );
@@ -92,6 +96,10 @@ if ($opt_pending) {
 
 if ($opt_checksum) {
         push(@error_messages, 'Disabled checksum of internal SMART data structure (used option -c)');
+}
+
+if ($opt_failure) {
+        push(@error_messages, 'Disabled warning when disk may be close to failure (used option -f)');
 }
 
 my ($device, $interface, $number) = qw//;
@@ -218,7 +226,7 @@ if ($return_code & 0x10) {
 	push(@error_messages, 'Disk is in prefail');
 	escalate_status('WARNING');
 }
-if ($return_code & 0x20) {
+if (($return_code & 0x20) && (!$opt_failure)) {
 	push(@error_messages, 'Disk may be close to failure');
 	escalate_status('WARNING');
 }
@@ -265,7 +273,7 @@ if (($interface eq 'ata') or ($interface =~ /sat.*/) or $output_as_sat){
 		my ($attribute_name, $when_failed, $raw_value) = ($1, $2, $3);
 		if ($when_failed ne '-'){
 			push(@error_messages, "Attribute $attribute_name failed at $when_failed");
-			escalate_status('WARNING');
+			escalate_status('WARNING') if !$opt_failure;
 			warn "(debug) parsed SMART attribute $attribute_name with error condition:\n$when_failed\n\n" if $opt_debug;
 		}
 		# some attributes produce questionable data; no need to graph them
@@ -365,6 +373,9 @@ else {
         if ($opt_checksum) {
                 $status_string = "$status_string, used option -c (disabled check of internal SMART data structure)";
         }
+        if ($opt_failure) {
+                $status_string = "$status_string, " .join(': ',@error_messages);
+        }
         $status_string = $status_string . ".";
 }
 
@@ -373,7 +384,7 @@ exit $ERRORS{$exit_status};
 
 sub print_help {
 	print_revision($basename,$revision);
-	print "Usage: $basename --device=<device> --interface=(ata|sat|scsi|[sat+]megaraid,N) [--realloc=<num>] [--pending=<num>] [--checksum] [--log] [--debug] [--version] [--help]\n";
+	print "Usage:\n$basename --device=<device> --interface=(ata|sat|scsi|[sat+]megaraid,N) [--realloc=<num>] [--pending=<num>] [--checksum] [--log] [--failure] [--debug] [--version] [--help]\n\n";
 	print "  -d/--device     a device to be SMART monitored, eg. /dev/sda\n";
 	print "  -i/--interface  ata, sat, scsi, megaraid, depending upon the device's interface type\n";
 #        print "  -n/--number     where in the argument megaraid, it is the physical disk number within the MegaRAID controller\n";
@@ -381,10 +392,11 @@ sub print_help {
         print "  -p/--pending    minimum of accepted pending sectors (actual value: $opt_pending)\n";
 	print "  -c/--checksum   disable checksum log structure (default: enable)\n";
 	print "  -l/--log        disable check of SMART logs (default: enable)\n";
+	print "  -f/--failure    disable warning when disk may be close to failure)\n";
 	print "     --debug      show debugging information\n";
 	print "  -h/--help       this help\n";
 	print "  -v/--version    show version of this plugin\n";
-	print "Examples:\n";
+	print "\nExamples:\n";
 	print "  $basename --device=/dev/sda --interface=sat --realloc=10\n";
 	print "  $basename -d /dev/sdb -i megaraid,2 -p 1 -l\n";
 	support();
@@ -414,7 +426,7 @@ check_smart.zcu.pl - B<Check SMART status> of ATA/SCSI/SAT disks, returning any 
 
 =head1 VERSION
 
-version 1.0.4
+version 1.0.7
 
 =head1 DESCRIPTION
 
